@@ -1247,7 +1247,7 @@ class Server(RemoteStatusMixin):
         return wal_info
 
     def recover(self, backup_info, dest, tablespaces=None, target_tli=None,
-                target_time=None, target_xid=None, target_name=None,
+                target_time=None, target_xid=None,target_barrier=None, target_name=None,
                 target_immediate=False, exclusive=False, remote_command=None):
         """
         Performs a recovery of a backup
@@ -1259,6 +1259,7 @@ class Server(RemoteStatusMixin):
         :param str|None target_tli: the target timeline
         :param str|None target_time: the target time
         :param str|None target_xid: the target xid
+        :param str|None target_barrier: the target barrier id        
         :param str|None target_name: the target name created previously with
                             pg_create_restore_point() function call
         :param bool|None target_immediate: end recovery as soon as consistency
@@ -1269,7 +1270,7 @@ class Server(RemoteStatusMixin):
         """
         return self.backup_manager.recover(
             backup_info, dest, tablespaces, target_tli, target_time,
-            target_xid, target_name, target_immediate, exclusive,
+            target_xid, target_barrier, target_name, target_immediate, exclusive,
             remote_command)
 
     def get_wal(self, wal_name, compression=None, output_directory=None,

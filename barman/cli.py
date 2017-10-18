@@ -383,7 +383,7 @@ def rebuild_xlogdb(args):
 @expects_obj
 def recover(args):
     """
-    Recover a server at a given time or xid
+    Recover a server at a given time or xid or barrier id
     """
     server = get_server(args)
 
@@ -477,6 +477,7 @@ def recover(args):
                        target_tli=args.target_tli,
                        target_time=args.target_time,
                        target_xid=args.target_xid,
+                       target_barrier=args.target_barrier,                       
                        target_name=args.target_name,
                        target_immediate=args.target_immediate,
                        exclusive=args.exclusive,

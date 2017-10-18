@@ -85,7 +85,7 @@ class RecoveryExecutor(object):
         self.config = backup_manager.config
 
     def recover(self, backup_info, dest, tablespaces, target_tli,
-                target_time, target_xid, target_name,
+                target_time, target_xid, target_barrier, target_name,
                 target_immediate, exclusive, remote_command):
         """
         Performs a recovery of a backup
@@ -97,6 +97,7 @@ class RecoveryExecutor(object):
         :param str|None target_tli: the target timeline
         :param str|None target_time: the target time
         :param str|None target_xid: the target xid
+        :param str|None target_barrier: the target barrier id        
         :param str|None target_name: the target name created previously with
                             pg_create_restore_point() function call
         :param str|None target_immediate: end recovery as soon as consistency
@@ -121,6 +122,7 @@ class RecoveryExecutor(object):
                                target_time,
                                target_tli,
                                target_xid,
+                               target_barrier,
                                target_immediate)
 
         # Retrieve the safe_horizon for smart copy
@@ -205,7 +207,7 @@ class RecoveryExecutor(object):
             self._generate_recovery_conf(recovery_info, backup_info, dest,
                                          target_immediate, exclusive,
                                          remote_command, target_name,
-                                         target_time, target_tli, target_xid)
+                                         target_time, target_tli, target_xid,target_barrier)
 
         # Create archive_status directory if necessary
         archive_status_dir = os.path.join(recovery_info['wal_dest'],
@@ -315,7 +317,7 @@ class RecoveryExecutor(object):
         return recovery_info
 
     def _set_pitr_targets(self, recovery_info, backup_info, dest, target_name,
-                          target_time, target_tli, target_xid,
+                          target_time, target_tli, target_xid, target_barrier,
                           target_immediate):
         """
         Set PITR targets - as specified by the user
@@ -329,6 +331,7 @@ class RecoveryExecutor(object):
         :param str|None target_time: recovery target time for PITR
         :param str|None target_tli: recovery target timeline for PITR
         :param str|None target_xid: recovery target transaction id for PITR
+        :param str|None target_barrier: recovery target barrier id for PITR       
         :param bool|None target_immediate: end recovery as soon as consistency
             is reached
         """
@@ -337,6 +340,7 @@ class RecoveryExecutor(object):
         # Detect PITR
         if (target_time or
                 target_xid or
+                target_barrier or
                 (target_tli and target_tli != backup_info.timeline) or
                 target_name or
                 recovery_info['get_wal'] or
@@ -368,6 +372,8 @@ class RecoveryExecutor(object):
                 targets['time'] = str(target_datetime)
             if target_xid:
                 targets['xid'] = str(target_xid)
+            if target_barrier:
+                targets['barrier'] = str(target_barrier)                
             if target_tli and target_tli != backup_info.timeline:
                 targets['timeline'] = str(target_tli)
             if target_name:
@@ -749,7 +755,7 @@ class RecoveryExecutor(object):
     def _generate_recovery_conf(self, recovery_info, backup_info, dest,
                                 immediate, exclusive, remote_command,
                                 target_name, target_time, target_tli,
-                                target_xid):
+                                target_xid, target_barrier):
         """
         Generate a recovery.conf file for PITR containing
         all the required configurations
@@ -767,6 +773,7 @@ class RecoveryExecutor(object):
         :param str target_time: recovery target time for PITR
         :param str target_tli: recovery target timeline for PITR
         :param str target_xid: recovery target transaction id for PITR
+        :param str target_barrier: recovery target barrier id for PITR        
         """
         if remote_command:
             recovery = open(os.path.join(recovery_info['tempdir'],
@@ -817,6 +824,8 @@ class RecoveryExecutor(object):
             print("recovery_target_time = '%s'" % target_time, file=recovery)
         if target_xid:
             print("recovery_target_xid = '%s'" % target_xid, file=recovery)
+        if target_barrier:
+            print("recovery_target_barrier = '%s'" % target_barrier, file=recovery)            
         if target_name:
             print("recovery_target_name = '%s'" % target_name, file=recovery)
         # TODO: log a warning if PostgreSQL < 9.4 and --immediate
@@ -824,7 +833,7 @@ class RecoveryExecutor(object):
             print("recovery_target = 'immediate'", file=recovery)
 
         # Manage what happens after recovery target is reached
-        if (target_xid or target_time) and exclusive:
+        if (target_xid or target_time or target_barrier) and exclusive:
             print("recovery_target_inclusive = '%s'" % (
                 not exclusive), file=recovery)
         if target_tli:
