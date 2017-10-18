@@ -324,6 +324,7 @@ def rebuild_xlogdb(args):
      help='target time. You can use any valid unambiguous representation. '
           'e.g: "YYYY-MM-DD HH:MM:SS.mmm"')
 @arg('--target-xid', help='target transaction ID')
+@arg('--target-barrier', help='target barrier ID')
 @arg('--target-name',
      help='target name created previously with '
           'pg_create_restore_point() function call')
@@ -450,9 +451,9 @@ def recover(args):
     #
     # [1]: https://www.postgresql.org/docs/current/static/
     #   recovery-target-settings.html
-
+    #  add target_barrier for adb by danghb @171018
     target_options = ['target_tli', 'target_time', 'target_xid',
-                      'target_name', 'target_immediate']
+                      'target_name', 'target_barrier', 'target_immediate']
     specified_target_options = len(
         [option for option in target_options if getattr(args, option)])
     if specified_target_options > 1:

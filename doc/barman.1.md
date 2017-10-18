@@ -234,6 +234,9 @@ recover *\[OPTIONS\]* *SERVER_NAME* *BACKUP_ID* *DESTINATION_DIRECTORY*
 
     --target-xid *TARGET_XID*
     :   Recover to the specified transaction ID.
+ 
+    --target-barrier *TARGET_barrier*
+    :   Recover to the specified barrier ID.
 
     --target-name *TARGET_NAME*
     :   Recover to the named restore point previously created with
