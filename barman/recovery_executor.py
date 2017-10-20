@@ -42,6 +42,7 @@ from barman.exceptions import (BadXlogSegmentName, CommandFailedException,
                                DataTransferFailure, FsOperationFailed)
 from barman.fs import UnixLocalCommand, UnixRemoteCommand
 from barman.infofile import BackupInfo
+from barman.infofile import load_datetime_tz
 from barman.utils import mkpath
 
 # generic logger for this module
@@ -370,6 +371,12 @@ class RecoveryExecutor(object):
                     time.mktime(target_datetime.timetuple()) +
                     (target_datetime.microsecond / 1000000.))
                 targets['time'] = str(target_datetime)
+                output.info("target_time is %s",str(target_datetime))
+                output.info("backup begin_time is %s",str(backup_info.begin_time))
+                if load_datetime_tz(str(target_datetime)) < backup_info.begin_time:
+                    output.error(
+                        "target_time should be greater than the backup begin time")
+                    output.close_and_exit()    
             if target_xid:
                 targets['xid'] = str(target_xid)
             if target_barrier:
