@@ -320,6 +320,8 @@ class PostgresBackupExecutor(BackupExecutor):
 
             if self.config.basebackups_tar:
                 backup_info.basebackups_tar = 'on'
+            if self.config.basebackups_tar_gz:
+                backup_info.basebackups_tar_gz = 'on'
 
             # Start the copy
             self.current_action = "copying files"
@@ -538,7 +540,10 @@ class PostgresBackupExecutor(BackupExecutor):
         self.server.close()
         args = []
         if backup_info.basebackups_tar:
-            args += ['--format=t']
+            if backup_info.basebackups_tar_gz:
+                args += ['--format=t','--gzip']
+            else:
+                args += ['--format=t']    
 
         pg_basebackup = PgBaseBackup(
             connection=self.server.streaming,
@@ -1316,7 +1321,10 @@ class BackupStrategy(with_metaclass(ABCMeta, object)):
         else:
             if backup_info.basebackups_tar:
                 data_dir=backup_info.get_data_directory()
-                os.system('cd '+data_dir+' && tar -xvf base.tar backup_label')
+                if backup_info.basebackups_tar_gz:
+                    os.system('cd '+data_dir+' && tar -xvf base.tar.gz backup_label')
+                else:
+                    os.system('cd '+data_dir+' && tar -xvf base.tar backup_label')
             backup_label_path = os.path.join(backup_info.get_data_directory(),
                                              'backup_label')
             with open(backup_label_path) as backup_label_file:
