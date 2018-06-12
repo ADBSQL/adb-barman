@@ -446,7 +446,9 @@ class BackupInfo(FieldListFile):
     copy_stats = Field('copy_stats', load=ast.literal_eval, dump=null_repr)
     xlog_segment_size = Field('xlog_segment_size', load=int,
                               default=xlog.DEFAULT_XLOG_SEG_SIZE)
-
+    basebackups_tar = Field('basebackups_tar')
+    basebackups_tar_gz = Field('basebackups_tar_gz')
+    
     __slots__ = ('server', 'config', 'backup_manager',
                  'backup_id', 'backup_version')
 

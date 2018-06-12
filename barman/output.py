@@ -545,7 +545,7 @@ class ConsoleOutputWriter(object):
             return
 
         out_list = [
-            "%s %s - " % (backup_info.server_name, backup_info.backup_id)]
+            "%s %s mode: %s tar:%s - " % (backup_info.server_name, backup_info.backup_id,backup_info.mode,backup_info.basebackups_tar)]
         if backup_info.status == BackupInfo.DONE:
             end_time = backup_info.end_time.ctime()
             out_list.append('%s - Size: %s - WAL Size: %s' %
